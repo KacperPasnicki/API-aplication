@@ -18,4 +18,3 @@ export const contactSchema = new Schema({
 });
 
  export const Contact = model("contact", contactSchema);
-//  module.exports = { Contact };
