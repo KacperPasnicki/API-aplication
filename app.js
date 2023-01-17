@@ -1,25 +1,65 @@
-const express = require("express");
-const logger = require("morgan");
-const cors = require("cors");
+// import dotenv from "dotenv";
+// import mongoose, { Schema } from "mongoose";
 
-const contactsRouter = require("./routes/api/contacts");
+// const express = require("express");
+// const logger = require("morgan");
+// const cors = require("cors");
 
-const app = express();
+// dotenv.config();
 
-const formatsLogger = app.get("env") === "development" ? "dev" : "short";
+// mongoose.connect(process.env.MONGO_URI, {
+// 	useNewUrlParser: true,
+// 	useUnifiedTopology: true,
+// });
 
-app.use(logger(formatsLogger));
-app.use(cors());
-app.use(express.json());
+// process.on("SIGINT", () => {
+// 	mongoose.disconnect();
+// 	console.log("Database disconnected!");
+// });
 
-app.use("/api/contacts", contactsRouter);
+// const contactSchema = new Schema({
+// 	name: {
+// 		type: String,
+// 		required: [true, "Set name for contact"],
+// 	},
+// 	email: {
+// 		type: String,
+// 	},
+// 	phone: {
+// 		type: String,
+// 	},
+// 	favorite: {
+// 		type: Boolean,
+// 		default: false,
+// 	},
+// });
 
-app.use((req, res) => {
-	res.status(404).json({ message: "Not found" });
-});
+// const Contact = mongoose.model("contact", contactSchema);
 
-app.use((err, req, res, next) => {
-	res.status(500).json({ message: err.message });
-});
+// const main = async () => {
+// 	await Contact.find().then(console.log);
+// };
 
-module.exports = app;
+// main().catch(console.error);
+
+// const contactsRouter = require("./routes/api/contacts");
+
+// const app = express();
+
+// const formatsLogger = app.get("env") === "development" ? "dev" : "short";
+
+// app.use(logger(formatsLogger));
+// app.use(cors());
+// app.use(express.json());
+
+// app.use("/api/contacts", contactsRouter);
+
+// app.use((req, res) => {
+// 	res.status(404).json({ message: "Not found" });
+// });
+
+// app.use((err, req, res, next) => {
+// 	res.status(500).json({ message: err.message });
+// });
+
+// module.exports = app;
