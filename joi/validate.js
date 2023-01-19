@@ -1,4 +1,4 @@
-const validate = (contactsSchema) => {
+export const validate = (contactsSchema) => {
 	return (req, res, next) => {
 		const { error } = contactsSchema.validate(req.body);
 		if (error) {
@@ -8,5 +8,3 @@ const validate = (contactsSchema) => {
 		next();
 	};
 };
-
-module.exports = validate;
