@@ -10,7 +10,9 @@ export const exists = async (id) => Contact.exists({ _id: id });
 
 export const update = async (id, { body }) => {
 	Contact.findByIdAndUpdate(id, { body });
-	// await
+};
+export const updateStatus = async (id, { body }) => {
+	Contact.findByIdAndUpdate(id, body, { new: true });
 };
 
 export const deleteById = async (id) => Contact.findByIdAndDelete(id);

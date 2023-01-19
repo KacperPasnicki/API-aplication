@@ -12,3 +12,5 @@ api.post("/", ContactsController.createContact);
 api.delete("/:contactId", ContactsController.deleteContact);
 
 api.put("/:contactId", ContactsController.updateContacts);
+
+api.path("/:contactId/favorite", ContactsController.updateStatus);
