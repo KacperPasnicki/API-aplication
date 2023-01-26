@@ -1,6 +1,5 @@
 import * as ContactsService from "./service.js";
-
-import { validate } from "../../joi/validate.js";
+import { validate } from "../../joi/contactsValidate.js";
 import { contactsSchema } from "../../joi/contactsSchema.js";
 
 const validateMiddleware = validate(contactsSchema);
@@ -57,12 +56,12 @@ export const updateStatus = async (req, res, next) => {
 	try {
 		const { favorite } = req.body;
 		const { contactId } = req.params;
-		await validateMiddleware;
-		if (!favorite || undefined)
+		await validateMiddleware();
+		if (favorite === undefined || favorite === null) 
 			return res.status(400).json({ message: "missing field" });
-		const contact = await ContactsService.exists(contactId);
-		if (!contact) return res.status(404).json({ message: "Not found" });
-		const updatedStatus = await ContactsService.update(contactId, req.body);
+
+		const updatedStatus = await ContactsService.updateStatusContact(contactId, req.body);
+		if (!updatedStatus) return res.status(404).json({ message: "Not found" })
 		res.status(200).send(updatedStatus);
 	} catch (error) {
 		console.error(error.message);
