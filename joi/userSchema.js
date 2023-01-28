@@ -1,8 +1,10 @@
-import Joi from "joi";
+import joi from "joi";
 
-export const userSchema = Joi.object({
-	name: Joi.string(),
-	email: Joi.string().email(),
-	phone: Joi.string(),
+export const userSchema = joi.object({
+	name: joi.string(),
+	email: joi.string().email(),
+	phone: joi.string(),
+	password: joi.string(),
+	token: joi.string()
 });
 

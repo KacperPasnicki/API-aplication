@@ -1,8 +1,14 @@
 import { User } from "./model.js";
-import * as UsersService from "./service.js"
+import * as UsersService from "./service.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
+const secret = process.env.SECRET;
 
+// const hashPassword = (pwd) => "_#ash_$alt_" + pwd;
+// const isValidPassword = (pwd, user) =>
+// 	user && hashPassword(pwd) === User.password;
 
-// const hashPassword = (pwd) => "_#ash_$alt_" + pwd
 
 export const getAllUsers = async (req, res, next) => {
 	try {
@@ -23,9 +29,10 @@ export const signup = async (req, res, next) => {
 
 	try {
 		// const hashedPwd = hashPassword(password);
-		 newUser = new User({email})
-		 newUser.setPassword(password)
-		return res.status(201).json({ message: "User registered" });
+		const newUser = new User({ email });
+		newUser.setPassword(password);
+		await newUser.save();
+		return res.status(201).json({ user: { email, subscription: "starter" } });
 	} catch (error) {
 		next(error);
 	}
@@ -33,32 +40,59 @@ export const signup = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
 	try {
-const { email, password } = req.body;
+		const { email, password } = req.body;
 
-const user =  await UsersService.getUser({email})
+		const user = await UsersService.getUser({ email });
+		// const isValidPwD = isValidPassword(password);
 
-if(!user || !isValidPwD) return res.status(401).json({message:"invalid credentials"})
+		// if ( !user || !validatePassword(password))
+		// 	return res.status(401).json({ message: "invalid credentials" });
 
-const payload = {
-	id: user.id,
-	username: user.username
-}
-const token = jwt.sign(payload, config.jwtSecret, { expiresIn: "1h" });
+		const payload = {
+			id: user._id,
+			email: user.email,
+		};
+		const token = jwt.sign(payload, secret, { expiresIn: "1h" });
+		await User.findByIdAndUpdate(user._id, { token });
 
-return res.json({ token })}
-catch (error){
-	next(error)
-}
-
-}
+		return res.status(200).json({ token: token, user: user });
+	} catch (error) {
+		next(error);
+	}
+};
 
 export const logout = async (req, res, next) => {
-	
-}
-export const current = async (req, res, next) => {
+	try {
+		const user = await UsersService.getUser({ _id: user._id });
+		if (!user) {
+			return res.status(401).json({ message: " Not authorized" });
+		}
+		await UsersService.update(user._id, { token: null });
+		return res.status(204).json({ message: "No content" });
+	} catch (error) {
+		next(error);
+	}
+};
 
-	
-}
-export const updateSubscription = async (req, res, next) => {
-	
-}
+export const current = async (req, res, next) => {
+	try {
+		const user = await UsersService.getUser({ token: req.user.token });
+		if (!user) {
+			return res.status(401).json({ message: " Not authorized" });
+		}
+		return res
+			.status(200)
+			.json({ user: user.email, subscription: user.subscription });
+	} catch (error) {
+		next(error);
+	}
+};
+// export const updateSubscription = async (req, res, next) => {
+// 	try{
+
+// 	}
+// 	catch (error){
+// 		next(error)
+// 	}
+
+// };
