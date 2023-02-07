@@ -4,8 +4,7 @@ import logger from "morgan";
 import { contactsRouter } from "./routes/api/contacts.js";
 import { usersRouter } from "./routes/api/users.js";
 export const app = express();
-// import * as ContactsRoute from "./routes/api/contacts.js"
-// import * as usersRoute from "./routes/api/users.js"
+
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
 app.use(logger(formatsLogger));

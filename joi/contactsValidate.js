@@ -8,8 +8,3 @@ export const validate = (contactsSchema) => {
 		next();
 	};
 };
-// const validator = (schema) => (body) => {
-// 	return schema.validate(body, { abortEarly: false });
-//   };
-
-//  export const contactsValidate = validator(contactsSchema);
