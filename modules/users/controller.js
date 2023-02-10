@@ -5,10 +5,6 @@ import dotenv from "dotenv";
 dotenv.config();
 const secret = process.env.SECRET;
 
-// const hashPassword = (pwd) => "_#ash_$alt_" + pwd;
-// const isValidPassword = (pwd, user) =>
-// 	user && hashPassword(pwd) === User.password;
-
 export const getAllUsers = async (req, res, next) => {
 	try {
 		const users = await User.find();
@@ -27,7 +23,6 @@ export const signup = async (req, res, next) => {
 	if (user) return res.status(409).json({ message: "Email already in use" });
 
 	try {
-		// const hashedPwd = hashPassword(password);
 		const newUser = new User({ email });
 		newUser.setPassword(password);
 		await newUser.save();
@@ -43,17 +38,17 @@ export const login = async (req, res, next) => {
 
 		const user = await UsersService.getUser({ email });
 
-		if ( !user || !user.validatePassword(password))
+		if (!user || !user.validatePassword(password))
 			return res.status(401).json({ message: "invalid credentials" });
 
 		const payload = {
 			id: user._id,
 			email: user.email,
 		};
-		const token = jwt.sign(payload, secret, { expiresIn: "1h" });
+		const token = jwt.sign(payload, secret, { expiresIn: "24h" });
 		await User.findByIdAndUpdate(user._id, { token });
 
-		return res.status(200).json({ token: user.token, user: user._id });
+		return res.status(200).json({ token, user: user, userToken: user.token });
 	} catch (error) {
 		next(error);
 	}
@@ -61,23 +56,28 @@ export const login = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
 	try {
-		const user = await UsersService.getUser({ _id: user._id });
+		const user = await UsersService.getUser({
+			user: req.headers.authorization,
+		});
 		if (!user) {
 			return res.status(401).json({ message: " Not authorized" });
 		}
-		await UsersService.update(user._id, { token: null });
-		return res.status(204).json({ message: "No content" });
+		await User.findByIdAndUpdate(user._id, { token: null });
+		return res.status(204).json({ message: "No content", user: user });
 	} catch (error) {
 		next(error);
 	}
 };
 
 export const current = async (req, res, next) => {
-	
 	try {
-		const user = await UsersService.getUser({ token: req.user.token });
+		// let token =  await req.headers.authorization;
+		const user = await UsersService.getUser({
+			user: req.headers.authorization,
+		});
+
 		if (!user) {
-			return res.status(401).json({ message: " Not authorized (notuser or token)" });
+			return res.status(401).json({ message: "Not authorized" });
 		}
 		return res
 			.status(200)
