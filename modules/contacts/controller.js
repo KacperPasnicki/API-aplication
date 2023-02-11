@@ -1,6 +1,5 @@
 import * as ContactsService from "./service.js";
-
-import { validate } from "../../joi/validate.js";
+import { validate } from "../../joi/contactsValidate.js";
 import { contactsSchema } from "../../joi/contactsSchema.js";
 
 const validateMiddleware = validate(contactsSchema);
@@ -9,19 +8,24 @@ export const getAllContacts = async (req, res, next) => {
 	try {
 		const contacts = await ContactsService.getAll();
 		res.status(200).json(contacts);
-	} catch (err) {
-		console.error(err.message);
-		next(err);
+	} catch (error) {
+		console.error(error.message);
+		next(error);
 	}
 };
 
-export const getContactById = async (req, res) => {
-	const { contactId } = req.params;
-	const requestedContact = await ContactsService.getById(contactId);
-	if (!requestedContact) {
-		res.status(404).json({ message: `Not found Id: ${contactId}` });
+export const getContactById = async (req, res, next) => {
+	try {
+		const { contactId } = req.params;
+		const requestedContact = await ContactsService.getById(contactId);
+		if (!requestedContact) {
+			res.status(404).json({ message: `Not found Id: ${contactId}` });
+		}
+		res.status(200).json(requestedContact);
+	} catch (error) {
+		console.error(error.message);
+		next(error);
 	}
-	res.status(200).json(requestedContact);
 };
 
 export const createContact = async (req, res) => {
@@ -46,6 +50,23 @@ export const updateContacts = async (req, res) => {
 	const updatedContact = await ContactsService.update(contact, req.body);
 	await ContactsService.update(contactId, req.body);
 	res.status(200).send(updatedContact);
+};
+
+export const updateStatus = async (req, res, next) => {
+	try {
+		const { favorite } = req.body;
+		const { contactId } = req.params;
+		await validateMiddleware();
+		if (favorite === undefined || favorite === null) 
+			return res.status(400).json({ message: "missing field" });
+
+		const updatedStatus = await ContactsService.updateStatusContact(contactId, req.body);
+		if (!updatedStatus) return res.status(404).json({ message: "Not found" })
+		res.status(200).send(updatedStatus);
+	} catch (error) {
+		console.error(error.message);
+		next(error);
+	}
 };
 
 export const deleteContact = async (req, res) => {

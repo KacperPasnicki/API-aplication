@@ -15,6 +15,11 @@ export const contactSchema = new Schema({
 		type: Boolean,
 		default: false,
 	},
-});
+	owner: {
+		type: Schema.Types.ObjectId,
+		ref: 'user',
+	  }
+},
+{ versionKey: false, timestamp: true });
 
- export const Contact = model("contact", contactSchema);
+export const Contact = model("contact", contactSchema);

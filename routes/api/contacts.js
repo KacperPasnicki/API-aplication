@@ -1,14 +1,18 @@
 import { Router } from "express";
 import * as ContactsController from "../../modules/contacts/controller.js";
 
-export const api = Router();
+export const contactsRouter = Router();
 
-api.get("/", ContactsController.getAllContacts);
+contactsRouter.get("/", ContactsController.getAllContacts);
 
-api.get("/:contactId", ContactsController.getContactById);
+contactsRouter.get("/:contactId", ContactsController.getContactById);
 
-api.post("/", ContactsController.createContact);
+contactsRouter.post("/", ContactsController.createContact);
 
-api.delete("/:contactId", ContactsController.deleteContact);
+contactsRouter.delete("/:contactId", ContactsController.deleteContact);
 
-api.put("/:contactId", ContactsController.updateContacts);
+contactsRouter.put("/:contactId", ContactsController.updateContacts);
+
+contactsRouter.patch("/:contactId/favorite", ContactsController.updateStatus);
+
+

@@ -1,10 +1,7 @@
-export const validate = (contactsSchema) => {
+export const validateData = (validator) => {
 	return (req, res, next) => {
-		const { error } = contactsSchema.validate(req.body);
-		if (error) {
-			error.status = 400;
-			next(error);
-		}
+		const { error } = validator(req.body);
+		if (error) return res.status(400).json(error.details[0].message);
 		next();
 	};
 };
