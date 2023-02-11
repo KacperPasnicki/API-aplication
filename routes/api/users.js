@@ -11,3 +11,4 @@ usersRouter.post("/login", validateData(userValidate), usersController.login);
 usersRouter.get("/", usersController.getAllUsers);
 usersRouter.get("/current", auth, usersController.current);
 usersRouter.get("/logout", auth, usersController.logout);
+usersRouter.patch("/avatars", auth, usersController.updateAvatars)

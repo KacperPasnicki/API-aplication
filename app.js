@@ -4,6 +4,7 @@ import logger from "morgan";
 import { contactsRouter } from "./routes/api/contacts.js";
 import { usersRouter } from "./routes/api/users.js";
 export const app = express();
+import path from "path";
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/api/contacts", contactsRouter);
 app.use("/api/users", usersRouter);
+app.use("/avatars", express.static(path.join(process.cwd(), "public", "avatars")));
 
 app.use((_, res) => {
 	res.status(404).json({
