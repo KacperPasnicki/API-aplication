@@ -9,12 +9,13 @@ const storage = multer.diskStorage({
 		callback(null, IMAGES_DIRECTORY);
 	},
 	filename: (req, file, callback) => {
-		const _id = req.user._id.toString();
-
-		const name = [_id, file.originalname].join("_");
+		// const id = req.user.id.toString();
+    const date = Date.now();
+    const rnd = Math.floor(Math.random() * 1_000_000);
+		const name = [date, rnd, file.originalname].join("_");
 		callback(null, name);
 	},
 	limits: { fileSize: 1_048_576 },
 });
 
-export const upload = multer({ storage });
+export const upload = multer({ storage })
