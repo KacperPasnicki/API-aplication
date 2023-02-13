@@ -11,8 +11,10 @@ import {
 	UPLOAD_DIRECTORY,
 	IMAGES_DIRECTORY,
 } from "../../middlewares/upload.js";
-
+import { v4 as uuidv4 } from "uuid";
+import { verifyMail } from "../../utils/verifyMail.js";
 dotenv.config();
+
 const secret = process.env.SECRET;
 
 export const getAllUsers = async (req, res, next) => {
@@ -29,15 +31,23 @@ export const signup = async (req, res, next) => {
 	const { email, password } = req.body;
 
 	const user = await UsersService.getUser({ email });
-
+	const verificationToken = uuidv4();
 	if (user) return res.status(409).json({ message: "Email already in use" });
 
 	try {
 		const avatarURL = gravatar.url(email, { s: "150" });
-		const newUser = new User({ email, avatarURL });
+		const newUser = new User({ email, avatarURL, verificationToken });
 		newUser.setPassword(password);
 		await newUser.save();
-		return res.status(201).json({ user: { email, subscription: "starter" } });
+		await verifyMail(email, user.verificationToken);
+		return res.status(201).json({
+			user: {
+				email,
+				subscription: "starter",
+				verificationToken: verificationToken,
+				avatarURL: avatarURL,
+			},
+		});
 	} catch (error) {
 		next(error);
 	}
@@ -84,7 +94,6 @@ export const logout = async (req, res, next) => {
 
 export const current = async (req, res, next) => {
 	try {
-		// let token =  await req.headers.authorization;
 		const user = await UsersService.getUser({
 			user: req.headers.authorization,
 		});
@@ -104,37 +113,52 @@ export const updateAvatars = async (req, res, next) => {
 	const { path: IMAGES_DIRECTORY, filename } = req.file;
 	const avatarURL = path.join(UPLOAD_DIRECTORY, filename);
 	try {
-
 		await jimpAvatar(IMAGES_DIRECTORY, avatarURL);
 		// await fs.unlink(IMAGES_DIRECTORY);
 		const user = UsersService.getUser({
 			user: req.headers.authorization,
 		});
 
-		// if (!user) return;
-		// {
-		// 	res.status(401).json({
-		// 		message: "Not authorized (avatar)",
-		// 		token: req.headers.authorization,
-		// 	});
-		// }
-
-		const newUser = await User.findByIdAndUpdate(user._id, avatarURL);
+		updateAvatar();
 		res.status(200).json({ avatarURL: avatarURL });
 	} catch (error) {
-		// await fs.unlink(IMAGES_DIRECTORY)
+		await updateAvatar();
 		next(error);
 	}
 };
-const updateAvatar = async (id, avatarURL) =>
-	User.findByIdAndUpdate(id, { avatarURL });
+const updateAvatar = async () => await fs.unlink(IMAGES_DIRECTORY);
 
-// export const updateSubscription = async (req, res, next) => {
-// 	try{
+export const verifyToken = async (req, res, next) => {
+	try {
+		const { verificationToken } = req.params;
+		const user = await UsersService.getUser({ verifyToken: verificationToken });
+		if (!user) {
+			res.status(404).json({ message: "User not found" });
+		}
+		await User.findByIdAndUpdate(user._id, {
+			verificationToken: null,
+			verify: true,
+			new: true,
+		});
+		res.status(200).json({ message: "Verification successful" });
+	} catch (error) {
+		next(error);
+	}
+};
+export const ReVerifyToken = async (req, res, next) => {
+	const { email } = req.body;
+	try {
+		const user = await UsersService.getUser({ email: email });
 
-// 	}
-// 	catch (error){
-// 		next(error)
-// 	}
-
-// };
+		if (!user) {
+			res.status(404).json({ message: "User not found" });
+		}
+		if (user.verificationToken) {
+			res.status(400).json({ message: "Verification has already been passed" });
+		}
+		await verifyMail(email, user.verificationToken);
+		res.status(200).json({ message: "Verification email sent" });
+	} catch (e) {
+		next(e);
+	}
+};
