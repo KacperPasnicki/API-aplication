@@ -2,6 +2,16 @@ import { User } from "./model.js";
 import * as UsersService from "./service.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import gravatar from "gravatar";
+import path from "path";
+import fs from "fs/promises";
+import { jimpAvatar } from "../../utils/jimpAvatar.js";
+import {
+	upload,
+	UPLOAD_DIRECTORY,
+	IMAGES_DIRECTORY,
+} from "../../middlewares/upload.js";
+
 dotenv.config();
 const secret = process.env.SECRET;
 
@@ -23,7 +33,8 @@ export const signup = async (req, res, next) => {
 	if (user) return res.status(409).json({ message: "Email already in use" });
 
 	try {
-		const newUser = new User({ email });
+		const avatarURL = gravatar.url(email, { s: "150" });
+		const newUser = new User({ email, avatarURL });
 		newUser.setPassword(password);
 		await newUser.save();
 		return res.status(201).json({ user: { email, subscription: "starter" } });
@@ -48,7 +59,9 @@ export const login = async (req, res, next) => {
 		const token = jwt.sign(payload, secret, { expiresIn: "24h" });
 		await User.findByIdAndUpdate(user._id, { token });
 
-		return res.status(200).json({ token, user: user, userToken: user.token });
+		return res
+			.status(200)
+			.json({ token, mail: user.email, avatar: user.avatarURL });
 	} catch (error) {
 		next(error);
 	}
@@ -81,11 +94,41 @@ export const current = async (req, res, next) => {
 		}
 		return res
 			.status(200)
-			.json({ user: user.email, subscription: user.subscription });
+			.json({ user: user, subscription: user.subscription });
 	} catch (error) {
 		next(error);
 	}
 };
+
+export const updateAvatars = async (req, res, next) => {
+	const { path: IMAGES_DIRECTORY, filename } = req.file;
+	const avatarURL = path.join(UPLOAD_DIRECTORY, filename);
+	try {
+
+		await jimpAvatar(IMAGES_DIRECTORY, avatarURL);
+		// await fs.unlink(IMAGES_DIRECTORY);
+		const user = UsersService.getUser({
+			user: req.headers.authorization,
+		});
+
+		// if (!user) return;
+		// {
+		// 	res.status(401).json({
+		// 		message: "Not authorized (avatar)",
+		// 		token: req.headers.authorization,
+		// 	});
+		// }
+
+		const newUser = await User.findByIdAndUpdate(user._id, avatarURL);
+		res.status(200).json({ avatarURL: avatarURL });
+	} catch (error) {
+		// await fs.unlink(IMAGES_DIRECTORY)
+		next(error);
+	}
+};
+const updateAvatar = async (id, avatarURL) =>
+	User.findByIdAndUpdate(id, { avatarURL });
+
 // export const updateSubscription = async (req, res, next) => {
 // 	try{
 

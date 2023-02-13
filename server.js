@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { app } from "./app.js";
+import { IMAGES_DIRECTORY, UPLOAD_DIRECTORY } from "./middlewares/upload.js";
+import { initializeDirectory } from "./utils/utils.js";
 
 const PORT = process.env.PORT || 3000;
 
@@ -12,7 +14,9 @@ mongoose
 		useUnifiedTopology: true,
 	})
 	.then(() => {
-		app.listen(PORT, function () {
+		app.listen(PORT, async  () => {
+			await initializeDirectory(UPLOAD_DIRECTORY);
+			await initializeDirectory(IMAGES_DIRECTORY)
 			console.log(`Server running. Use our API on port: ${PORT}`);
 		});
 	})
